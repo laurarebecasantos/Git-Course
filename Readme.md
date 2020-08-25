@@ -1,4 +1,4 @@
-Arquivo da aula de Git e Github para iniciantes.
+Git and Github lessons archive for beginners.
 
 
-editando o arquivo
+Editing the file.
