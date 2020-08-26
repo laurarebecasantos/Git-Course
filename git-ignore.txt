@@ -1,0 +1,115 @@
+gitignore - especifica arquivos intencionalmente não rastreados para ignorar
+
+SINOPSE
+$ XDG_CONFIG_HOME / git / ignore, $ GIT_DIR / info / exclude, .gitignore
+
+DESCRIÇÃO
+Um gitignorearquivo especifica arquivos intencionalmente não rastreados que o Git deve ignorar. Os arquivos já rastreados pelo Git não são afetados; veja as NOTAS abaixo para detalhes.
+
+Cada linha em um gitignorearquivo especifica um padrão. Ao decidir se deve ignorar um caminho, o Git normalmente verifica os gitignorepadrões de várias fontes, com a seguinte ordem de precedência, da mais alta para a mais baixa (dentro de um nível de precedência, o último padrão correspondente decide o resultado):
+
+Padrões lidos na linha de comando para os comandos que os suportam.
+
+Padrões lidos de um .gitignorearquivo no mesmo diretório que o caminho, ou em qualquer diretório pai, com padrões nos arquivos de nível superior (até o nível superior da árvore de trabalho) sendo substituídos por aqueles em arquivos de nível inferior até o diretório que contém o Arquivo. Esses padrões correspondem em relação à localização do .gitignorearquivo. Um projeto normalmente inclui esses .gitignorearquivos em seu repositório, contendo padrões para arquivos gerados como parte da construção do projeto.
+
+Padrões lidos $GIT_DIR/info/exclude.
+
+Padrões lidos do arquivo especificado pela variável de configuração core.excludesFile.
+
+Em qual arquivo colocar um padrão depende de como o padrão deve ser usado.
+
+Os padrões que devem ser controlados por versão e distribuídos a outros repositórios por meio de clones (ou seja, arquivos que todos os desenvolvedores desejam ignorar) devem entrar em um .gitignorearquivo.
+
+Os padrões que são específicos para um repositório particular, mas que não precisam ser compartilhados com outros repositórios relacionados (por exemplo, arquivos auxiliares que vivem dentro do repositório, mas são específicos para o fluxo de trabalho de um usuário) devem ir para o $GIT_DIR/info/excludearquivo.
+
+Os padrões que um usuário deseja que o Git ignore em todas as situações (por exemplo, backup ou arquivos temporários gerados pelo editor de escolha do usuário) geralmente vão para um arquivo especificado por core.excludesFileno usuário ~/.gitconfig. Seu valor padrão é $ XDG_CONFIG_HOME / git / ignore. Se $ XDG_CONFIG_HOME não estiver definido ou estiver vazio, $ HOME / .config / git / ignore será usado.
+
+As ferramentas de encanamento Git subjacentes, como git ls-files e git read-tree , leem gitignorepadrões especificados por opções de linha de comando ou de arquivos especificados por opções de linha de comando. Ferramentas Git de nível superior, como git status e git add , usam padrões das fontes especificadas acima.
+
+FORMATO DE PADRÃO
+Uma linha em branco não corresponde a nenhum arquivo, portanto, pode servir como um separador para facilitar a leitura.
+
+Uma linha começando com # serve como um comentário. Coloque uma barra invertida (" \") na frente do primeiro hash para padrões que começam com um hash.
+
+Os espaços à direita são ignorados, a menos que estejam entre aspas (" \").
+
+Um prefixo opcional " !" que nega o padrão; qualquer arquivo correspondente excluído por um padrão anterior será incluído novamente. Não é possível incluir novamente um arquivo se um diretório pai desse arquivo for excluído. Git não lista diretórios excluídos por motivos de desempenho, portanto, quaisquer padrões nos arquivos contidos não têm efeito, não importa onde sejam definidos. Coloque uma barra invertida (" \") antes do primeiro " !" para padrões que começam com um " !" literal , por exemplo, " \!important!.txt".
+
+A barra / é usada como separador de diretório. Os separadores podem ocorrer no início, meio ou fim do .gitignorepadrão de pesquisa.
+
+Se houver um separador no início ou no meio (ou ambos) do padrão, o padrão é relativo ao nível do diretório do .gitignorepróprio arquivo. Caso contrário, o padrão também pode corresponder em qualquer nível abaixo do .gitignorenível.
+
+Se houver um separador no final do padrão, o padrão corresponderá apenas a diretórios, caso contrário, o padrão pode corresponder a arquivos e diretórios.
+
+Por exemplo, um padrão doc/frotz/corresponde ao doc/frotzdiretório, mas não ao a/doc/frotzdiretório; no entanto, frotz/corresponde frotz e a/frotzé um diretório (todos os caminhos são relativos ao .gitignorearquivo).
+
+Um asterisco " *" corresponde a qualquer coisa, exceto uma barra. O caractere " ?" corresponde a qualquer caractere, exceto " /". A notação de intervalo, por exemplo [a-zA-Z], pode ser usada para corresponder a um dos caracteres em um intervalo. Consulte fnmatch (3) e o sinalizador FNM_PATHNAME para uma descrição mais detalhada.
+
+Dois asteriscos consecutivos (" **") em padrões combinados com o nome do caminho completo podem ter um significado especial:
+
+Um " **" inicial seguido de uma barra significa que corresponde a todos os diretórios. Por exemplo, " **/foo" corresponde ao arquivo ou diretório " foo" em qualquer lugar, o mesmo que o padrão " foo". " **/foo/bar" corresponde ao arquivo ou diretório " bar" em qualquer lugar que esteja diretamente no diretório " foo".
+
+Um " /**" à direita corresponde a tudo dentro. Por exemplo, " abc/**" corresponde a todos os arquivos dentro do diretório " abc", em relação à localização do .gitignorearquivo, com profundidade infinita.
+
+Uma barra seguida por dois asteriscos consecutivos e uma barra corresponde a zero ou mais diretórios. Por exemplo, " a/**/b" corresponde a " a/b", " a/x/b", " a/x/y/b" e assim por diante.
+
+Outros asteriscos consecutivos são considerados asteriscos regulares e corresponderão de acordo com as regras anteriores.
+
+CONFIGURAÇÃO
+A variável de configuração opcional core.excludesFileindica um caminho para um arquivo que contém padrões de nomes de arquivo a serem excluídos, semelhantes aos $GIT_DIR/info/exclude. Os padrões no arquivo de exclusão são usados ​​além daqueles em $GIT_DIR/info/exclude.
+
+NOTAS
+O objetivo dos arquivos gitignore é garantir que certos arquivos não rastreados pelo Git permaneçam não rastreados.
+
+Para parar de rastrear um arquivo que está sendo rastreado, use git rm --cached .
+
+EXEMPLOS
+O padrão hello.*corresponde a qualquer arquivo ou pasta cujo nome comece com hello. Se alguém quiser restringir isso apenas ao diretório e não em seus subdiretórios, pode-se preceder o padrão com uma barra, isto é /hello.*; o padrão agora corresponde hello.txt, hello.cmas não a/hello.java.
+
+O padrão foo/irá corresponder a um diretório fooe caminhos abaixo dele, mas não irá corresponder a um arquivo regular ou um link simbólico foo(isso é consistente com a maneira como o pathspec funciona em geral no Git)
+
+O padrão doc/frotze /doc/frotztem o mesmo efeito em qualquer .gitignorearquivo. Em outras palavras, uma barra inicial não é relevante se já houver uma barra intermediária no padrão.
+
+O padrão "foo / *", corresponde a "foo / test.json" (um arquivo regular), "foo / bar" (um diretório), mas não corresponde a "foo / bar / hello.c" (um arquivo regular ), pois o asterisco no padrão não corresponde a "bar / hello.c", que contém uma barra.
+
+    $ git status
+    [...]
+    # Arquivos não rastreados:
+    [...]
+    # Documentation / foo.html
+    # Documentation / gitignore.html
+    # file.o
+    # lib.a
+    # src / internal.o
+    [...]
+    $ cat .git / info / exclude
+    # ignore objetos e arquivos, em qualquer lugar da árvore.
+    *. [oa]
+    $ cat Documentation / .gitignore
+    # ignore os arquivos html gerados,
+    * .html
+    # exceto foo.html que é mantido manualmente
+    ! foo.html
+    $ git status
+    [...]
+    # Arquivos não rastreados:
+    [...]
+    # Documentation / foo.html
+    [...]
+Outro exemplo:
+
+    $ cat .gitignore
+    vmlinux *
+    $ ls arch / foo / kernel / vm *
+    arch / foo / kernel / vmlinux.lds.S
+    $ echo '! / vmlinux *'> arch / foo / kernel / .gitignore
+O segundo .gitignore impede o Git de ignorar arch/foo/kernel/vmlinux.lds.S.
+
+Exemplo para excluir tudo, exceto um diretório específico foo/bar (observe o /*- sem a barra, o curinga também excluiria tudo dentro foo/bar):
+
+    $ cat .gitignore
+    # excluir tudo exceto o diretório foo / bar
+    / *
+    ! / foo
+    / foo / *
+    ! / foo / bar

@@ -1,0 +1,184 @@
+git-fetch - Baixar objetos e referências de outro repositório
+
+SINOPSE
+git fetch [<options>] [<repository> [<refspec>…]]
+ git fetch [<options>] <group>
+ git fetch --multiple [<options>] [(<repository> | <group>)… ]
+ Git fetch --all [<opções>]
+DESCRIÇÃO
+Busque branches e / ou tags (coletivamente, "refs") de um ou mais outros repositórios, junto com os objetos necessários para completar seus históricos. Ramificações de rastreamento remoto são atualizadas (veja a descrição de <refspec> abaixo para formas de controlar este comportamento).
+
+Por padrão, qualquer tag que aponte para os históricos sendo buscados também é buscada; o efeito é buscar tags que apontam para branches nos quais você está interessado. Este comportamento padrão pode ser alterado usando as opções --tags ou --no-tags ou configurando remote. <name> .tagOpt. Usando um refspec que busca tags explicitamente, você pode buscar tags que não apontam para branches nos quais você está interessado também.
+
+git fetch pode buscar de um único repositório nomeado ou URL, ou de vários repositórios de uma vez se <grupo> for fornecido e houver uma entrada remotes. <grupo> no arquivo de configuração. (Veja git-config [1] ).
+
+Quando nenhum remoto for especificado, por padrão o originremoto será usado, a menos que haja um branch upstream configurado para o branch atual.
+
+Os nomes dos refs que são buscados, junto com os nomes dos objetos para os quais eles apontam, são gravados .git/FETCH_HEAD. Essas informações podem ser usadas por scripts ou outros comandos git, como git-pull [1] .
+
+OPÇÕES
+--tudo
+Obtenha todos os controles remotos.
+
+-uma
+--acrescentar
+Anexa nomes de ref e nomes de objeto de refs buscados ao conteúdo existente de .git/FETCH_HEAD. Sem esta opção, os dados antigos .git/FETCH_HEADserão substituídos.
+
+--depth = <depth>
+Limita a busca ao número especificado de commits da ponta de cada histórico de branch remoto. Se for buscar em um repositório raso criado por git clonecom --depth=<depth>opção (veja git-clone [1] ), aprofunde ou encurte o histórico para o número especificado de commits. Tags para os commits aprofundados não são buscados.
+
+--deepen = <depth>
+Semelhante a --depth, exceto que especifica o número de commits do limite raso atual ao invés da ponta de cada histórico de branch remoto.
+
+--shallow-since = <data>
+Aprofunde ou encurte o histórico de um repositório superficial para incluir todos os commits acessíveis após <data>.
+
+--shallow-exclude = <revisão>
+Aprofunde ou encurte o histórico de um repositório superficial para excluir os commits acessíveis de um branch ou tag remoto especificado. Esta opção pode ser especificada várias vezes.
+
+- pouco raso
+Se o repositório de origem estiver completo, converta um repositório raso em um completo, removendo todas as limitações impostas por repositórios rasos.
+
+Se o repositório de origem for raso, busque o máximo possível para que o repositório atual tenha o mesmo histórico do repositório de origem.
+
+--update-shallow
+Por padrão, ao buscar de um repositório raso, git fetchrecusa refs que requerem atualização .git / raso. Esta opção atualiza .git / shallow e aceita tais referências.
+
+--negotiation-tip = <commit | glob>
+Por padrão, o Git reportará, ao servidor, commits acessíveis de todas as referências locais para encontrar commits comuns em uma tentativa de reduzir o tamanho do packfile a ser recebido. Se especificado, o Git relatará apenas commits acessíveis a partir das dicas fornecidas. Isso é útil para acelerar buscas quando o usuário sabe qual ref local provavelmente tem commits em comum com a ref upstream sendo buscada.
+
+Esta opção pode ser especificada mais de uma vez; em caso afirmativo, o Git relatará commits acessíveis a partir de qualquer um dos commits fornecidos.
+
+O argumento para esta opção pode ser um glob sobre nomes de ref, um ref ou o (possivelmente abreviado) SHA-1 de um commit. Especificar um glob é equivalente a especificar esta opção várias vezes, uma para cada nome de referência correspondente.
+
+Veja também a fetch.negotiationAlgorithmvariável de configuração documentada em git-config [1] .
+
+--funcionamento a seco
+Mostre o que seria feito, sem fazer nenhuma alteração.
+
+-f
+--força
+Quando git fetch é usado com <src>:<dst>refspec, ele pode se recusar a atualizar o branch local conforme discutido na <refspec>parte abaixo. Esta opção substitui essa verificação.
+
+-k
+--guarda
+Mantenha o pacote baixado.
+
+--múltiplo
+Permite que vários argumentos <repository> e <group> sejam especificados. Nenhum <refspec> s pode ser especificado.
+
+- [no-] auto-gc
+Execute git gc --autono final para realizar a coleta de lixo, se necessário. Isso é ativado por padrão.
+
+- [sem-] grava-com-grafo
+Escreva um gráfico de confirmação após a busca. Isso substitui a definição de configuração fetch.writeCommitGraph.
+
+-p
+--ameixa seca
+Antes de buscar, remova todas as referências de rastreamento remoto que não existem mais no remoto. As tags não estão sujeitas a remoção se forem buscadas apenas por causa do seguimento automático de tags padrão ou devido a uma opção --tags. No entanto, se as tags forem buscadas devido a um refspec explícito (na linha de comando ou na configuração remota, por exemplo, se o remoto foi clonado com a opção --mirror), então elas também estão sujeitas à poda. Fornecer --prune-tagsé uma forma abreviada de fornecer a tag refspec.
+
+Veja a seção PODA abaixo para mais detalhes.
+
+-P
+--prune-tags
+Antes de buscar, remova quaisquer tags locais que não existam mais no remoto se --pruneestiver habilitado. Esta opção deve ser usada com mais cuidado, ao contrário de --pruneremover quaisquer referências locais (tags locais) que foram criadas. Esta opção é uma forma abreviada de fornecer a tag explspec juntamente com --prune, consulte a discussão sobre isso em sua documentação.
+
+Veja a seção PODA abaixo para mais detalhes.
+
+-n
+--no-tags
+Por padrão, as tags que apontam para objetos baixados do repositório remoto são buscadas e armazenadas localmente. Esta opção desabilita este seguimento automático de tag. O comportamento padrão de um controle remoto pode ser especificado com a configuração remote. <name> .tagOpt. Veja git-config [1] .
+
+--refmap = <refspec>
+Ao buscar refs listados na linha de comando, use o refspec especificado (pode ser fornecido mais de uma vez) para mapear os refs para ramos de rastreamento remoto, ao invés dos valores das remote.*.fetchvariáveis de configuração para o repositório remoto. Fornecer um vazio <refspec>para a --refmapopção faz com que o Git ignore os refspecs configurados e confie inteiramente nos refspecs fornecidos como argumentos de linha de comando. Consulte a seção "Ramificações de rastreamento remoto configuradas" para obter detalhes.
+
+-t
+--Tag
+Obter todas as tags do remoto (ou seja, buscar tags remotas refs/tags/*em tags locais com o mesmo nome), além de tudo o mais que seria obtido de outra forma. Usar esta opção sozinha não sujeita as tags à remoção, mesmo se --prune for usado (embora as tags possam ser removidas de qualquer maneira se elas também forem o destino de um refspec explícito; consulte --prune).
+
+--recurse-submodules [= yes | on-demand | no]
+Esta opção controla se e sob quais condições novos commits de submódulos populados devem ser buscados também. Ele pode ser usado como uma opção booleana para desativar completamente a recursão quando definida como não ou para recursar incondicionalmente em todos os submódulos preenchidos quando definida como sim , que é o padrão quando esta opção é usada sem nenhum valor. Use sob demanda para apenas recursar em um submódulo preenchido quando o superprojeto recupera um commit que atualiza a referência do submódulo para um commit que ainda não está no clone do submódulo local. Por padrão, sob demanda é usado, a menos que fetch.recurseSubmodulesesteja definido (consulte git-config [1] ).
+
+-j
+--jobs = <n>
+Número de filhos paralelos a serem usados ​​para todas as formas de busca.
+
+Se a --multipleopção foi especificada, os diferentes controles remotos serão buscados em paralelo. Se vários submódulos forem buscados, eles serão buscados em paralelo. Para controlá-los independentemente, use as configurações de configuração fetch.parallele submodule.fetchJobs(consulte git-config [1] ).
+
+Normalmente, as buscas paralelas recursivas e remotas serão mais rápidas. Por padrão, as buscas são executadas sequencialmente, não em paralelo.
+
+--no-recurse-submodules
+Desative a busca recursiva de submódulos (isso tem o mesmo efeito que usar a --recurse-submodules=noopção).
+
+--set-upstream
+Se o remoto for obtido com sucesso, extraia e adicione a referência upstream (rastreamento), usada pelo git-pull sem argumentos [1] e outros comandos. Para obter mais informações, consulte branch.<name>.mergee branch.<name>.remoteem git-config [1] .
+
+--submodule-prefix = <path>
+Prefixe <path> aos caminhos impressos em mensagens informativas, como "Buscando submódulo foo". Esta opção é usada internamente ao recorrer em submódulos.
+
+--recurse-submodules-default = [sim | sob demanda]
+Esta opção é usada internamente para fornecer temporariamente um valor padrão não negativo para a opção --recurse-submodules. Todos os outros métodos de configuração da recursão do submódulo de fetch (como configurações em gitmodules [5] e git-config [1] ) sobrescrevem esta opção, assim como especifica - [no-] recurse-submodules diretamente.
+
+-você
+--update-head-ok
+Por padrão, git fetch se recusa a atualizar o cabeçalho que corresponde ao branch atual. Este sinalizador desativa a verificação. Isso é puramente para uso interno do git pull para se comunicar com o git fetch e, a menos que você esteja implementando seu próprio Porcelain, não deve usá-lo.
+
+--upload-pack <upload-pack>
+Quando fornecido, e o repositório a partir do qual buscar é gerenciado por git fetch-pack , --exec=<upload-pack>é passado ao comando para especificar o caminho não padrão para o comando executado na outra extremidade.
+
+-q
+--quieto
+Passe --quiet para git-fetch-pack e silencie quaisquer outros comandos git usados ​​internamente. O progresso não é relatado ao fluxo de erro padrão.
+
+-v
+--verbose
+Seja prolixo.
+
+--progresso
+O status de progresso é relatado no fluxo de erro padrão por padrão quando ele é conectado a um terminal, a menos que -q seja especificado. Este sinalizador força o status de progresso mesmo se o fluxo de erro padrão não for direcionado a um terminal.
+
+-o <opção>
+--server-option = <option>
+Transmita a string fornecida para o servidor ao se comunicar usando a versão de protocolo 2. A string fornecida não deve conter um caractere NUL ou LF. O tratamento das opções do servidor pelo servidor, incluindo opções desconhecidas, é específico do servidor. Quando vários --server-option=<option>são fornecidos, todos eles são enviados para o outro lado na ordem listada na linha de comando.
+
+--mostrar atualizações forçadas
+Por padrão, o git verifica se um branch é atualizado à força durante a busca. Isso pode ser desabilitado por meio de fetch.showForcedUpdates, mas a opção --show-forçadas-atualizações garante que essa verificação ocorra. Veja git-config [1] .
+
+--no-show-force-updates
+Por padrão, o git verifica se um branch é atualizado à força durante a busca. Passe --no-show-forçado-updates ou defina fetch.showForcedUpdates como false para ignorar esta verificação por motivos de desempenho. Se usado durante git-pull, a opção --ff-only ainda verificará se há atualizações forçadas antes de tentar uma atualização de avanço rápido. Veja git-config [1] .
+
+-4
+--ipv4
+Use apenas endereços IPv4, ignorando os endereços IPv6.
+
+-6
+--ipv6
+Use apenas endereços IPv6, ignorando os endereços IPv4.
+
+<repositório>
+O repositório "remoto" que é a origem de uma operação de busca ou extração. Este parâmetro pode ser um URL (consulte a seção GIT URLS abaixo) ou o nome de um remoto (consulte a seção REMOTOS abaixo).
+
+<grupo>
+Um nome que se refere a uma lista de repositórios como o valor de remotes. <grupo> no arquivo de configuração. (Veja git-config [1] ).
+
+<refspec>
+Especifica quais referências buscar e quais referências locais atualizar. Quando nenhum <refspec> s aparece na linha de comando, os refs a serem buscados são lidos das remote.<repository>.fetchvariáveis ​​(veja FILIAIS DE RASTREAMENTO REMOTO CONFIGURADOS abaixo).
+
+O formato de um parâmetro <refspec> é um sinal de adição opcional +, seguido pela origem <src>, seguida por dois pontos :, seguida pela referência de destino <dst>. Os dois pontos podem ser omitidos quando <dst> está vazio. <src> é normalmente um ref, mas também pode ser um nome de objeto hexadecimal totalmente escrito.
+
+tag <tag>significa o mesmo que refs/tags/<tag>:refs/tags/<tag>; ele solicita buscar tudo até a tag fornecida.
+
+A referência remota que corresponde a <src> é buscada e, se <dst> não for uma string vazia, é feita uma tentativa de atualizar a referência local que a corresponde.
+
+Se essa atualização é permitida sem, --forcedepende do namespace ref ao qual está sendo buscado, do tipo de objeto que está sendo buscado e se a atualização é considerada um avanço rápido. Geralmente, as mesmas regras se aplicam para buscar como para empurrar, veja a <refspec>... seção de git-push [1] para o que são. As exceções a essas regras específicas para git fetch são indicadas abaixo.
+
+Até a versão 2.20 do Git, e ao contrário do push com git-push [1] , todas as atualizações para refs/tags/*seriam aceitas sem +o refspec (ou --force). Ao buscar, consideramos promiscuamente todas as atualizações de tag de um remoto como buscas forçadas. Desde a versão 2.20 do Git, buscar para atualizar refs/tags/*funciona da mesma forma que fazer push. +Ou seja, quaisquer atualizações serão rejeitadas sem no refspec (ou --force).
+
+Ao contrário do push com git-push [1] , quaisquer atualizações fora de refs/{tags,heads}/*serão aceitas sem +no refspec (ou --force), seja trocando, por exemplo, um objeto de árvore por um blob ou um commit por outro commit que não tem o anterior comprometa-se como ancestral etc.
+
+Ao contrário do push com git-push [1] , não há configuração que altere essas regras e nada como um pre-fetchgancho análogo ao pre-receivegancho.
+
+Assim como acontece com o push com git-push [1] , todas as regras descritas acima sobre o que não é permitido como uma atualização podem ser substituídas adicionando um opcional levando +a um refspec (ou usando a --force opção de linha de comando). A única exceção a isso é que nenhuma quantidade de força fará com que o refs/heads/*namespace aceite um objeto sem commit.
+
+Nota
+Quando o branch remoto que você deseja buscar é conhecido por ser rebobinado e rebaseado regularmente, espera-se que sua nova dica não seja descendente de sua dica anterior (conforme armazenado em seu branch de rastreamento remoto na última vez que você buscou). Você gostaria de usar o +sinal para indicar que atualizações não aceleradas serão necessárias para essas ramificações. Não há como determinar ou declarar que um branch será disponibilizado em um repositório com este comportamento; o usuário de pull simplesmente deve saber que este é o padrão de uso esperado para um branch.
